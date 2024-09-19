@@ -10,6 +10,7 @@ app.use(express.json());
 
 // Call the connectDB function to test the connection
 connectDB();
+
 app.use("/api/compagin", compagin);
 app.use("/api/user", user);
 app.listen(port, () => {

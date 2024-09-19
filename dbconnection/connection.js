@@ -1,5 +1,7 @@
 const { Client } = require("pg");
 const { Sequelize } = require("sequelize");
+const { exec } = require('child_process');
+const { util } = require('util')
 require("dotenv").config(); // Load environment variables
 
 const dbName = process.env.DB_NAME;
@@ -17,6 +19,30 @@ const sequelize = new Sequelize( dbName, dbUser, dbPassword,
   }
 );
 
+// Run migration here to avoid terminal commands
+function runMigration() {
+  return new Promise((resolve, reject) => {
+    const migrate = exec(
+      'npx sequelize-cli db:migrate',
+      { env: process.env },
+      (err) => (err ? reject(err) : resolve())
+    );
+
+    // Forward stdout and stderr to this process
+    migrate.stdout.pipe(process.stdout);
+    migrate.stderr.pipe(process.stderr);
+  });
+}
+
+async function runMigrations() {
+  try {
+    await runMigration();
+    console.log('Migration completed successfully.');
+  } catch (error) {
+    console.error('Migration failed:', error);
+  }
+}
+
 // Create DB if does not exist
 const create_DB_If_Not_Exists = async () => {
   const client = new Client({
@@ -31,6 +57,7 @@ const create_DB_If_Not_Exists = async () => {
     await client.connect();
     await client.query(`CREATE DATABASE "${dbName}";`);
     console.log(`Database "${dbName}" created successfully.`);
+    await runMigrations();
   } 
   catch (error) {
     if (error.code === '42P04') { //Database already exists
@@ -43,6 +70,9 @@ const create_DB_If_Not_Exists = async () => {
     await client.end()
   }
 };
+
+
+
 
 
 // Test the connection

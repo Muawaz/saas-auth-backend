@@ -2,6 +2,16 @@ const User = require("../models/UserModel.js");
 const crypto = require("crypto");
 const sendEmail = require("../helpers/mailer.js");
 
+// exports.loginUser = async (data) => {
+//   try {
+//     let response = await User.findOne({
+//       email: data.email,
+//       password: data.password,
+//     });
+
+//   }
+// }
+
 exports.addnewuser = async (data) => {
   // console.log(data, "from ser");
 
@@ -13,22 +23,22 @@ exports.addnewuser = async (data) => {
     });
     console.log(response.dataValues.id, "from sersis");
 
-    const verificationToken = crypto.randomBytes(32).toString("hex");
-    response.verificationToken = verificationToken;
+    // const verificationToken = crypto.randomBytes(32).toString("hex");
+    // response.verificationToken = verificationToken;
     await response.save();
 
-    const verificationLink = `http://localhost:8080/api/user/verify-email?token=${verificationToken}&userId=${response.dataValues.id}`;
-    console.log(verificationLink);
+    // const verificationLink = `http://localhost:8080/api/user/verify-email?token=${verificationToken}&userId=${response.dataValues.id}`;
+    // console.log(verificationLink);
 
-    await sendEmail(
-      response.dataValues.email,
-      "Verify your email",
-      `
-      <p>Hi ${response.dataValues.name},</p>
-      <p>Please verify your email by clicking the link below:</p>
-      <a href="${verificationLink}">Verify Email</a>
-    `
-    );
+    // await sendEmail(
+    //   response.dataValues.email,
+    //   "Verify your email",
+    //   `
+    //   <p>Hi ${response.dataValues.name},</p>
+    //   <p>Please verify your email by clicking the link below:</p>
+    //   <a href="${verificationLink}">Verify Email</a>
+    // `
+    // );
     return response;
   } catch (error) {
     console.log("Error while creating new user");
