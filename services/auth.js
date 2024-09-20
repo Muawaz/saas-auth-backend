@@ -1,4 +1,5 @@
 const User = require("../models/UserModel.js");
+const bcrypt = require('bcryptjs')
 const crypto = require("crypto");
 const { sendEmail } = require("../helpers/mailer.js");
 
@@ -12,16 +13,23 @@ exports.addnewuser = async (data) => {
       return { success: false, message: "Email already exists." }; // Email exists
     }
 
+    let hash = await bcrypt.hash(data.password, 10);
+    console.log('hashhhhh:   ', hash)
+    console.log("type offf : ", typeof(hash));
+    
+
     let response = await User.create({
       name: data.name,
       email: data.email,
-      password: data.password,
-    });
-    console.log(response.dataValues.id, "from sersis");
+      password: hash,
+    })
 
+    // console.log(response.dataValues.id, "from sersis");
+    // console.log('response : ', response)
+    
     const verificationToken = crypto.randomBytes(32).toString("hex");
     response.verificationToken = verificationToken;
-    const verificationLink = `http://localhost:8080/api/user/verify-email?token=${verificationToken}&userId=${response.dataValues.id}`;
+    const verificationLink = `http://localhost:${process.env.PORT}/api/user/verify-email?token=${verificationToken}&userId=${response.dataValues.id}`;
     console.log(verificationLink);
     await response.save();
 
@@ -34,7 +42,12 @@ exports.addnewuser = async (data) => {
       <a href="${verificationLink}">Verify Email</a>
     `
     );
-    return response;
+    
+    return {
+      success: true,
+      message: "User created successfully. Verification email sent.",
+      user: response,
+    };
   } catch (error) {
     console.log("Error while creating new user", error);
     return {
