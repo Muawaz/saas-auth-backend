@@ -2,29 +2,22 @@ const { addnewuser, finduserbyid } = require("../services/auth.js");
 const User = require("../models/UserModel.js");
 
 async function login(req, res, next) {
-  const { email1, password1 } = req.body;
-  console.log('email1 : ', email1);
-  console.log('password1 : ', password1);
+  const { email, password } = req.body;
+  console.log('email1 : ', email);
+  console.log('password1 : ', password);
   
   
 
-  if ( !email1 || !password1 ) {
+  if ( !email || !password ) {
     return res.status( 400 ).json({
       message: "Email or Password not present",
     })
   }
-
-  console.log('beforeee  useerrrr : ');
-  const user = await User.findOne({
-    attributes: ['id', 'email', 'password'], // Specify the columns you want
-    where: { email: email1, password: password1 }
-  });
-  console.log('useerrrr : ', user);
   
   try {
     const user = await User.findOne({
       attributes: ['id', 'email', 'password'], // Specify the columns you want
-      where: { email: email1, password: password1 }
+      where: { email: email, password: password }
     });
     console.log(' FIND ONE RUN SUCCESSFULL')
     if ( !user ) {
