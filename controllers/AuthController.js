@@ -55,26 +55,32 @@ async function createnewuser(req, res) {
     res.status(401).json({ status: 0, message: "All fields are required" });
   }
   let newuser = await addnewuser(userdata);
-  res
-    .status(201)
-    .json({ status: 1, message: "User created successfully", user: newuser });
+  if (!newuser.success) {
+    res.status(401).json({ status: 0, message: newuser.message });
+  } else {
+    res
+      .status(201)
+      .json({ status: 1, message: newuser.message, user: newuser.user });
+  }
 }
 
 async function verifyEmail(req, res) {
   const { token, userId } = req.query;
+  console.log(token, userId, "From kontroller");
 
-  const user = await finduserbyid(userId);
-  // const user = await User.findOne({ where: { id: userId } });
+  const user = await finduserbyid({ token, userId });
+  console.log(user);
 
-  if (!user || user.verificationToken !== token) {
-    return res.status(400).json({ status: 0, message: "Invalid token" });
+  if (!user || !token || !userId) {
+    return res
+      .status(401)
+      .json({ status: 0, message: "Invalid token and userId" });
   }
 
-  user.isVerified = true;
-  user.verificationToken = null;
-  await user.save();
-
-  res.status(200).json({ status: 1, message: "Email verified successfully" });
+  const statusCode = user.status ? user.status : 400;
+  res
+    .status(statusCode)
+    .json({ status: user.status, message: user.message, user: user });
 }
 
 module.exports = {
