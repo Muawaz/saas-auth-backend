@@ -17,10 +17,6 @@ const Compagin = sequelize.define("Compagin", {
     onUpdate: "CASCADE", // Optional: If the User id changes, update in Compagin too
     onDelete: "CASCADE", // Optional: If a User is deleted, delete all associated Compagins
   },
-  scheduled_at: {
-    type: DataTypes.DATE, // Use DATE for both date and time
-    allowNull: true, // You can decide if you want to allow it to be nullable or not
-  },
   status: {
     type: DataTypes.STRING,
     allowNull: false, // Makes sure the status cannot be null

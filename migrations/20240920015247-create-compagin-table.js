@@ -1,28 +1,32 @@
 "use strict";
 
-const { DataTypes } = require("sequelize");
-
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    await queryInterface.createTable("Users", {
+    await queryInterface.createTable("Compagins", {
       id: {
-        allowNull: false,
+        type: Sequelize.INTEGER,
         autoIncrement: true,
         primaryKey: true,
+        allowNull: false,
+      },
+      compaginname: {
+        type: Sequelize.STRING,
+        allowNull: false,
+      },
+      userid: {
         type: Sequelize.INTEGER,
-      },
-      name: {
-        type: Sequelize.STRING,
+        references: {
+          model: "Users", // Reference the Users table
+          key: "id",
+        },
+        onUpdate: "CASCADE", // Update the userid if the User id changes
+        onDelete: "CASCADE", // Delete the Compagins if the User is deleted
         allowNull: false,
       },
-      email: {
+      status: {
         type: Sequelize.STRING,
         allowNull: false,
-        unique: true,
-      },
-      password: {
-        type: Sequelize.STRING,
-        allowNull: false,
+        defaultValue: "draft",
       },
       createdAt: {
         allowNull: false,
@@ -36,6 +40,6 @@ module.exports = {
   },
 
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.dropTable("Users");
+    await queryInterface.dropTable("Compagins");
   },
 };

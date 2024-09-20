@@ -24,6 +24,18 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: false,
       },
+      isVerified: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false, // Default value is unverified
+      },
+      role: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        defaultValue: "user",
+      },
+      verificationToken: {
+        type: DataTypes.STRING,
+      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE,
