@@ -1,5 +1,6 @@
 const { addnewuser, finduserbyid } = require("../services/auth.js");
 const User = require("../models/UserModel.js");
+const bcrypt = require('bcryptjs')
 
 async function login(req, res, next) {
   const { email, password } = req.body;
@@ -16,20 +17,32 @@ async function login(req, res, next) {
   
   try {
     const user = await User.findOne({
-      attributes: ['id', 'email', 'password'], // Specify the columns you want
-      where: { email: email, password: password }
+      // attributes: ['email'], // Specify the columns you want
+      where: { email: email }
     });
     console.log(' FIND ONE RUN SUCCESSFULL')
+    console.log('userrrr : ', user)
+
     if ( !user ) {
       res.status( 401 ).json({
         message: "Login not successful",
         error: "User not found while logging in",
       });
     } else {
-      res.status( 200 ).json({
-        message: "Login successful",
-        user,
-      });
+
+      // Comparing given password with hashed password
+      let result = await bcrypt.compare(password, user.password);
+      console.log('resulttt : ', result)
+
+      result
+        ? res.status( 200 ).json({
+          message: "Login successful",
+          user,
+        })
+        : res.status( 400 ).json({
+          message: "Login Unsuccessful",
+          user,
+        })
     }
   } catch ( error ) {
     res.status( 400 ).json({
