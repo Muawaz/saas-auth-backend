@@ -60,7 +60,7 @@ async function createnewuser(req, res) {
   if (!userdata.name || !userdata.email || !userdata.password) {
     res.status(401).json({ status: 0, message: "All fields are required" });
   }
-  let newuser = await addnewuser(userdata);
+  let newuser = await addnewuser(userdata, res);
   if (!newuser.success) {
     res.status(401).json({ status: 0, message: newuser.message });
   } else {

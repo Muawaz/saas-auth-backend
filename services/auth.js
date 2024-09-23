@@ -1,9 +1,12 @@
-const User = require("../models/UserModel.js");
 const bcrypt = require('bcryptjs')
 const crypto = require("crypto");
+const jwt = require('jsonwebtoken')
+const User = require("../models/UserModel.js");
 const { sendEmail } = require("../helpers/mailer.js");
 
-exports.addnewuser = async (data) => {
+const jwtSecret = process.env.JWT_SECRET
+
+exports.addnewuser = async (data, res) => {
   // console.log(data, "from ser");
 
   try {
@@ -23,7 +26,43 @@ exports.addnewuser = async (data) => {
       email: data.email,
       password: hash,
     })
+    
+    try {
+      const maxAge = 3 * 60 * 60; // 3hrs in sec
+      const token = jwt.sign(
+        {
+          id: response.dataValues.id,
+          email: response.dataValues.email,
+          role: response.dataValues.role
+        },
+        jwtSecret,
+        {
+          expiresIn: maxAge,
+        }
+      );
 
+      res.cookie('jwt', token, {
+        httpOnly: true,
+        maxAge: maxAge * 1000, // in ms
+      });
+
+      // res.status(201).json({
+      //   success: true,
+      //   message: "User signed successfully with JWT.",
+      //   user: response,
+      // });
+
+    } catch (error) {
+      res.status( 400 ).json({
+        success: false,
+        message: "Error while creating JWT...",
+        error: error.message,
+      });
+    }
+      
+
+
+    
     // console.log(response.dataValues.id, "from sersis");
     // console.log('response : ', response)
     
