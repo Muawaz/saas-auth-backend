@@ -1,6 +1,9 @@
 const { addnewuser, finduserbyid } = require("../services/auth.js");
 const User = require("../models/UserModel.js");
 const bcrypt = require('bcryptjs')
+const jwt = require('jsonwebtoken')
+
+const jwtSecret = process.env.JWT_SECRET
 
 async function login(req, res, next) {
   const { email, password } = req.body;
@@ -34,15 +37,39 @@ async function login(req, res, next) {
       let result = await bcrypt.compare(password, user.password);
       console.log('resulttt : ', result)
 
-      result
-        ? res.status( 200 ).json({
-          message: "Login successful",
-          user,
-        })
-        : res.status( 400 ).json({
-          message: "Login Unsuccessful",
-          user,
-        })
+      if ( result ) {
+        const maxAge = 3 * 60 * 60; // 3hrs in sec
+          const token = jwt.sign(
+            {
+              id: user.id,
+              email: user.email,
+              role: user.role
+            },
+            jwtSecret,
+            {
+              expiresIn: maxAge,
+            }
+          );
+
+          res.cookie('jwt', token, {
+            httpOnly: true,
+            maxAge: maxAge * 1000, // in ms
+          });
+
+          res.status(201).json({
+            success: true,
+            message: "User signed successfully with JWT.",
+            user: user,
+          });
+
+        }
+        else {
+          res.status( 400 ).json({
+            success: false,
+            message: "Error occurred in JWT...",
+            error: error.message,
+          });
+        }
     }
   } catch ( error ) {
     res.status( 400 ).json({
