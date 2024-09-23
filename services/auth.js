@@ -138,3 +138,68 @@ exports.finduserbyid = async (data) => {
     };
   }
 };
+
+exports.verifyLogin = async (req, res, next) => {
+  const { email, password } = req.body;
+  try {
+    const user = await User.findOne({
+      // attributes: ['email'], // Specify the columns you want
+      where: { email: email }
+    });
+    console.log(' FIND ONE RUN SUCCESSFULL')
+    console.log('userrrr : ', user)
+
+    if ( !user ) {
+      res.status( 401 ).json({
+        message: "Login not successful",
+        error: "User not found while logging in",
+      });
+    } else {
+
+      // Comparing given password with hashed password
+      let result = await bcrypt.compare(password, user.password);
+      console.log('resulttt : ', result)
+
+      if ( result ) {
+        const maxAge = 3 * 60 * 60; // 3hrs in sec
+          const token = jwt.sign(
+            {
+              id: user.id,
+              email: user.email,
+              role: user.role
+            },
+            jwtSecret,
+            {
+              expiresIn: maxAge,
+            }
+          );
+
+          res.cookie('jwt', token, {
+            httpOnly: true,
+            maxAge: maxAge * 1000, // in ms
+          });
+
+          res.status(201).json({
+            success: true,
+            message: "User signed successfully with JWT.",
+            user: user,
+          });
+
+        }
+        else {
+          res.status( 400 ).json({
+            success: false,
+            message: "Error occurred in JWT...",
+            error: error.message,
+          });
+        }
+    }
+  } catch ( error ) {
+    res.status( 400 ).json({
+      success: false,
+      message: "An error occurred in login",
+      error: error.message,
+
+    })
+  }
+}
