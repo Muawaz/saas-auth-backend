@@ -33,7 +33,7 @@ const User = sequelize.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
-    optExpire: {
+    otpExpire: {
       type: DataTypes.DATE,
       allowNull: true,
     },
