@@ -59,9 +59,6 @@ exports.addnewuser = async (data, res) => {
         error: error.message,
       });
     }
-      
-
-
     
     // console.log(response.dataValues.id, "from sersis");
     // console.log('response : ', response)
@@ -146,8 +143,8 @@ exports.verifyLogin = async (req, res, next) => {
       // attributes: ['email'], // Specify the columns you want
       where: { email: email }
     });
-    console.log(' FIND ONE RUN SUCCESSFULL')
-    console.log('userrrr : ', user)
+    // console.log(' FIND ONE RUN SUCCESSFULL')
+    // console.log('userrrr : ', user)
 
     if ( !user ) {
       res.status( 401 ).json({
@@ -158,7 +155,7 @@ exports.verifyLogin = async (req, res, next) => {
 
       // Comparing given password with hashed password
       let result = await bcrypt.compare(password, user.password);
-      console.log('resulttt : ', result)
+      // console.log('resulttt : ', result)
 
       if ( result ) {
         const maxAge = 3 * 60 * 60; // 3hrs in sec
@@ -202,4 +199,62 @@ exports.verifyLogin = async (req, res, next) => {
 
     })
   }
+}
+
+exports.storeAndSendOTP = async (req, res, next) => {
+  const { email } = req.body;
+  const user = await User.findOne({ where: { email: email } });
+  // console.log(' FIND ONE RUN SUCCESSFULL in forgot password')
+  // console.log('userrrr : ', user)
+
+  if ( !user ) {
+    return res
+      .status( 400 )
+      .json({
+        message: "User does not exist",
+        error: "User not found with forgot password",
+      });
+  } 
+
+  const otp = Math.floor( Math.random() * 9000);
+  const optExp = new Date();
+  optExp.setMinutes(optExp.getMinutes() + 1); // 1m expiry
+  
+  try {
+    user.otp = otp;
+    user.otpExpire = optExp;
+    await user.save();
+  } catch ( err ) {
+    // console.log(" Error while saving OTP ", err.message);
+    return res.status( 500 ).json({
+        status: false,
+        message: err.message
+      })
+  }
+
+  try {
+    await sendEmail(
+      user.email,
+      "Your OTP Code",
+      `<p>Hi ${user.name},</p>
+       <p>Your OTP code is: <strong>${user.otp}</strong></p>
+       <p>Please use this code to complete your verification.</p>
+       <p> .( YOUR CODE IS VALID UPTO 1 MINUTE ). </p>
+       <p>Thank you!</p>`
+    );
+  } catch ( err ) {
+    // console.log(" Error while sending OTP email ", err.message);
+    return res.status( 500 ).json({
+        status: false,
+        message: err.message
+      })
+  }
+  
+  return res
+    .status(201)
+    .json({ 
+      status: true, 
+      message: "OTP Saved. OTP email sent successfully", 
+      user: user 
+    });
 }

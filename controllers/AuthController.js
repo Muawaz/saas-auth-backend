@@ -1,7 +1,9 @@
-const { addnewuser, finduserbyid, verifyLogin } = require("../services/auth.js");
+const { addnewuser, finduserbyid, verifyLogin, storeAndSendOTP } = require("../services/auth.js");
 const User = require("../models/UserModel.js");
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
+const Joi = require('joi')
+const { sendEmail } = require("../helpers/mailer.js");
 
 const jwtSecret = process.env.JWT_SECRET
 
@@ -61,8 +63,50 @@ async function verifyEmail(req, res) {
     .json({ status: user.status, message: user.message, user: user });
 }
 
+async function user_forgotPassword (req, res, next) {
+  const { email } = req.body;
+
+  if ( !email ) {
+    console.log("Form Data not Found")
+    return res
+      .status ( 400 )
+      .json({
+        status: false,
+        message: "Form Data not Found"
+      })
+  }
+
+  const { error }  = Joi.object({
+    email: Joi.string().email().required()
+  }).validate(req.body);
+
+  if ( error ) {
+    console.log("Req body does not contain valid email address");
+    return res
+      .status( 400 )
+      .json({
+        status: false,
+        message: error.details[0].message
+      })
+  }
+  
+  try {
+    await storeAndSendOTP (req, res, next);
+  } catch ( err ) {
+    console.log(" Error while creating OTP ", err.message);
+    return res
+      .status( 500 )
+      .json({
+        status: false,
+        message: err.message
+      })
+  }
+  
+}
+
 module.exports = {
   createnewuser,
   verifyEmail,
   login,
+  user_forgotPassword,
 };
