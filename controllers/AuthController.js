@@ -2,10 +2,17 @@ const { addnewuser, finduserbyid } = require("../services/auth.js");
 
 async function createnewuser(req, res) {
   let userdata = req.body;
-  console.log(userdata);
+  console.log(userdata, "from auth controller");
 
-  if (!userdata.name || !userdata.email || !userdata.password) {
-    res.status(401).json({ status: 0, message: "All fields are required" });
+  if (
+    Object.keys(userdata).length === 0 ||
+    !userdata.name ||
+    !userdata.email ||
+    !userdata.password
+  ) {
+    return res
+      .status(401)
+      .json({ status: 0, message: "All fields are required" });
   }
   let newuser = await addnewuser(userdata);
   if (!newuser.success) {

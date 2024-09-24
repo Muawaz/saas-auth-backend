@@ -36,6 +36,8 @@ exports.updatecompaginfield = async (data, id) => {
   console.log(data, id, "from services while updating the record");
   try {
     let record = await Compagin.findByPk(id);
+    // console.log(record, "From kkkkk");
+
     if (record == null) {
       return 0;
     }

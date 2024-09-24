@@ -52,7 +52,7 @@ async function updatecompagin(req, res) {
     message: "Record updated successfully",
     data: updateindb,
   });
-  res.json({ data: data, id: id });
+  // res.json({ data: data, id: id });
 }
 
 async function getcompagins(req, res) {
