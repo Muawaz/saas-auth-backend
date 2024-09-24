@@ -29,6 +29,14 @@ const User = sequelize.define(
     verificationToken: {
       type: DataTypes.STRING,
     },
+    otp: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    otpExpire: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
   },
   {
     timestamps: true,

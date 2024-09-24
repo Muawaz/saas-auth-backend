@@ -1,4 +1,29 @@
-const { addnewuser, finduserbyid } = require("../services/auth.js");
+const { addnewuser, finduserbyid, verifyLogin } = require("../services/auth.js");
+const User = require("../models/UserModel.js");
+const bcrypt = require('bcryptjs')
+const jwt = require('jsonwebtoken')
+
+const jwtSecret = process.env.JWT_SECRET
+
+
+
+async function login(req, res, next) {
+  const { email, password } = req.body;
+  console.log('email1 : ', email);
+  console.log('password1 : ', password);
+  
+  
+
+  if ( !email || !password ) {
+    return res.status( 401 ).json({
+      status: false,
+      message: "Email or Password not present",
+    })
+  }
+
+  let verification = await verifyLogin(req, res, next);  
+  
+}
 
 async function createnewuser(req, res) {
   let userdata = req.body;
@@ -14,7 +39,7 @@ async function createnewuser(req, res) {
       .status(401)
       .json({ status: 0, message: "All fields are required" });
   }
-  let newuser = await addnewuser(userdata);
+  let newuser = await addnewuser(userdata, res);
   if (!newuser.success) {
     res.status(401).json({ status: 0, message: newuser.message });
   } else {
@@ -46,4 +71,5 @@ async function verifyEmail(req, res) {
 module.exports = {
   createnewuser,
   verifyEmail,
+  login,
 };

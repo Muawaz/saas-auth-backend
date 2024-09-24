@@ -1,8 +1,8 @@
 {
   "development": {
     "username": "postgres",
-    "password": "12345",
-    "database": "emailreach",
+    "password": "tiger",
+    "database": "reachDB",
     "host": "localhost",
     "dialect": "postgres"
   },
