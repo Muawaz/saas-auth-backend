@@ -26,7 +26,7 @@ app.use(cookieParser());
 
 app.use("/api/compagin", compagin);
 app.use("/api/user", user);
-app.use("/emailstatus", sentemailstatus);
+// app.use("/emailstatus", sentemailstatus);
 
 // const recipientEmail = "samaxa1810@rinseart.com";
 // const subject = "Test Email with Tracking";

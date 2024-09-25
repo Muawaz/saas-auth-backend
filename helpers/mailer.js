@@ -9,16 +9,15 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-async function sendEmail(to, subject, html, emailId) {
-  // console.log(to);
+async function sendEmail(emailSpec, emailId) {
+  const to = emailSpec.emailTo;
+  const subject = emailSpec.emailSubject;
+  const html = emailSpec.emailBody;
+
   const trackingPixel = `<img src="http://localhost:8080/emailstatus/isopen?emailId=${emailId}" width="1" height="1" alt="" style="display:none;">`;
   console.log(trackingPixel, "from sendEmail");
 
   const htmlWithTracking = html + trackingPixel;
-async function sendEmail(emailSpec) {
-  const to = emailSpec.emailTo;
-  const subject = emailSpec.emailSubject;
-  const html = emailSpec.emailBody;
 
   await transporter.sendMail({
     from: process.env.EMAIL_USER,
