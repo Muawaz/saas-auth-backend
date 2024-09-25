@@ -2,7 +2,8 @@ const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 const User = require("../models/UserModel.js");
 const { sendEmail } = require("../helpers/mailer.js");
-const { Check_New_User, Hash_Password, Generate_Verification_Link, Create_New_User, Find_User, Check_Login_User, Generate_JWT_Token } = require('../helpers/auth_utility.js');
+const { Check_New_User, Create_New_User, Generate_Verification_Link } = require('../helpers/auth_utility/signup_utli.js');
+const { Check_Login_User, Generate_JWT_Token } = require('../helpers/auth_utility/login_util.js');
 
 
 
@@ -87,6 +88,7 @@ exports.finduserbyid = async (data) => {
 exports.verifyLogin = async (body, res) => {
   const { email, password } = body;
   try {
+
     const { dataValues: user } = await Check_Login_User(email, password, res)
 
     if (!user) return

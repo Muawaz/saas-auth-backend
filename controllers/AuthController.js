@@ -10,39 +10,25 @@ const jwt = require("jsonwebtoken");
 const Joi = require("joi");
 const { sendEmail } = require("../helpers/mailer.js");
 const { Op } = require('sequelize');
-const { Validate_Login_Body } = require("../helpers/auth_utility.js");
+const { Validate_SignUp_Body } = require("../helpers/auth_utility/signup_utli.js");
+const { Validate_Login_Body } = require("../helpers/auth_utility/login_util.js");
 
 const jwtSecret = process.env.JWT_SECRET;
+
+async function createnewuser(req, res) {
+
+  if (await Validate_SignUp_Body(req.body, res)) return;
+
+  let newuser = await addnewuser(req.body, res);
+
+}
 
 async function login(req, res, next) {
 
   if (await Validate_Login_Body(req.body, res)) return;
 
   let verification = await verifyLogin(req.body, res);
-}
 
-async function createnewuser(req, res) {
-  let userdata = req.body;
-  console.log(userdata, "from auth controller");
-
-  if (
-    Object.keys(userdata).length === 0 ||
-    !userdata.name ||
-    !userdata.email ||
-    !userdata.password
-  ) {
-    return res
-      .status(401)
-      .json({ status: 0, message: "All fields are required" });
-  }
-  let newuser = await addnewuser(userdata, res);
-  // if (!newuser.success) {
-  //   res.status(401).json({ status: 0, message: newuser.message });
-  // } else {
-  //   res
-  //     .status(201)
-  //     .json({ status: 1, message: newuser.message, user: newuser.user });
-  // }
 }
 
 async function verifyEmail(req, res) {
