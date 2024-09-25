@@ -9,23 +9,16 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const Joi = require("joi");
 const { sendEmail } = require("../helpers/mailer.js");
-const { Op } = require('sequelize')
+const { Op } = require('sequelize');
+const { Validate_Login_Body } = require("../helpers/auth_utility.js");
 
 const jwtSecret = process.env.JWT_SECRET;
 
 async function login(req, res, next) {
-  const { email, password } = req.body;
-  console.log("email1 : ", email);
-  console.log("password1 : ", password);
 
-  if (!email || !password) {
-    return res.status(401).json({
-      status: false,
-      message: "Email or Password not present",
-    });
-  }
+  if (await Validate_Login_Body(req.body, res)) return;
 
-  let verification = await verifyLogin(req, res, next);
+  let verification = await verifyLogin(req.body, res);
 }
 
 async function createnewuser(req, res) {
@@ -176,7 +169,7 @@ async function user_resetPassword(req, res, next) {
     console.log('before hashing');
     let new_hash = await bcrypt.hash(password, 10);
     console.log('new_hash : ', new_hash);
-    
+
     try {
       console.log('before saving new password');
       user.password = new_hash
