@@ -28,7 +28,7 @@ exports.Check_Login_User = async (email, password, res) => {
         const result = await De_Hash_Password(password, userexists.dataValues.password);
         if (result) return userexists
     }
-    await response_failed(res, 400, "Login not successful")
+    await response_failed(res, 400, "User not Found")
     return
 }
 
