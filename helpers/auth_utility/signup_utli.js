@@ -43,7 +43,7 @@ exports.Create_New_User = async (name, email, password) => {
 }
 
 
-exports.Generate_Verification_Link = async (user) => {
+exports.generate_verification_link = async (user) => {
 
     const verificationToken = crypto.randomBytes(32).toString("hex");
     user.verificationToken = verificationToken;

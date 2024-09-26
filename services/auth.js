@@ -2,9 +2,10 @@ const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 const User = require("../models/UserModel.js");
 const { sendEmail } = require("../helpers/mailer.js");
-const { Check_New_User, Create_New_User, Generate_Verification_Link } = require('../helpers/auth_utility/signup_utli.js');
+const { Check_New_User, Create_New_User, generate_verification_link } = require('../helpers/auth_utility/signup_utli.js');
 const { Check_Login_User, generate_JWT_token } = require('../helpers/auth_utility/login_util.js');
 const { response_ok, response_failed } = require('../helpers/error.js');
+const { generate_otp, save_otp, otp_email } = require('../helpers/auth_utility/forget_util.js');
 
 
 
@@ -24,9 +25,9 @@ exports.add_new_user = async (data, res) => {
   }
 };
 
-exports.new_user_email = async (user, res) => {
+exports.verfication_email = async (user, res) => {
   try {
-    const verificationLink = Generate_Verification_Link(user);
+    const verificationLink = generate_verification_link(user);
 
     const emailSpec = {
       emailTo: user.dataValues.email,
@@ -44,9 +45,6 @@ exports.new_user_email = async (user, res) => {
     await response_failed(res, 400, "Error while sending verification email.", error.message)
     return
   }
-
-
-
 
 }
 
@@ -108,60 +106,28 @@ exports.verifyLogin = async (body, res) => {
   }
 }
 
-exports.storeAndSendOTP = async (req, res, next) => {
-  const { email } = req.body;
-  const user = await User.findOne({ where: { email: email } });
-  // console.log(' FIND ONE RUN SUCCESSFULL in forgot password')
-  // console.log('userrrr : ', user)
-
-  if (!user) {
-    return res
-      .status(400)
-      .json({
-        message: "User does not exist",
-        error: "User not found with forgot password",
-      });
-  }
-
-  const otp = Math.floor(Math.random() * 9000);
-  const optExp = new Date();
-  optExp.setMinutes(optExp.getMinutes() + 1); // 1m expiry
+exports.storeAndSendOTP = async (email, res, next) => {
 
   try {
-    user.otp = otp;
-    user.otpExpire = optExp;
-    await user.save();
-  } catch (err) {
-    // console.log(" Error while saving OTP ", err.message);
-    return res.status(500).json({
-      status: false,
-      message: err.message
-    })
+
+    const user = await User.findOne({ where: { email: email } });
+
+    if (!user) {
+      response_failed(res, 400, "User does not exist")
+      return
+    }
+
+    const { otp, otpExp } = await generate_otp()
+
+    if (! await save_otp(res, user, otp, otpExp)) return
+
+    if (! await otp_email(user.dataValues)) return
+
+    return user
+  } catch (error) {
+    await response_failed(res, 400, "Error occurred while storing and send OTP...", error.message)
+    return
   }
 
-  try {
-    await sendEmail(
-      user.email,
-      "Your OTP Code",
-      `<p>Hi ${user.name},</p>
-       <p>Your OTP code is: <strong>${user.otp}</strong></p>
-       <p>Please use this code to complete your verification.</p>
-       <p> .( YOUR CODE IS VALID UPTO 1 MINUTE ). </p>
-       <p>Thank you!</p>`
-    );
-  } catch (err) {
-    // console.log(" Error while sending OTP email ", err.message);
-    return res.status(500).json({
-      status: false,
-      message: err.message
-    })
-  }
 
-  return res
-    .status(201)
-    .json({
-      status: true,
-      message: "OTP Saved. OTP email sent successfully",
-      user: user
-    });
 }

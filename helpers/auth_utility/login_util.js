@@ -5,7 +5,7 @@ const User = require('../../models/UserModel');
 const { response_failed } = require('../error');
 
 const jwtSecret = process.env.JWT_SECRET
-const maxAge = parseInt(process.env.JWT_MAX_AGE_HRS)
+const maxAge = parseInt(process.env.JWT_MAX_AGE_HRS) * 60 * 60
 
 exports.validate_login_body = async (body, res) => {
 

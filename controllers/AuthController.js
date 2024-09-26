@@ -1,4 +1,4 @@
-const { add_new_user, finduserbyid, verifyLogin, storeAndSendOTP, new_user_email, } = require("../services/auth.js");
+const { add_new_user, finduserbyid, verifyLogin, storeAndSendOTP, verfication_email, } = require("../services/auth.js");
 const User = require("../models/UserModel.js");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
@@ -8,6 +8,7 @@ const { Op } = require('sequelize');
 const { validate_signup_body } = require("../helpers/auth_utility/signup_utli.js");
 const { validate_login_body, generate_JWT_token } = require("../helpers/auth_utility/login_util.js");
 const { response_ok } = require("../helpers/error.js");
+const { validate_forgot_body } = require("../helpers/auth_utility/forget_util.js");
 
 const jwtSecret = process.env.JWT_SECRET;
 
@@ -19,7 +20,7 @@ async function createnewuser(req, res) {
 
   if (!createdUser) return
 
-  if (await new_user_email(createdUser, res)) return
+  if (await verfication_email(createdUser, res)) return
 
   return await response_ok(res, 200, "User created successfully. Verification email sent.", createdUser)
 
@@ -58,37 +59,16 @@ async function verifyEmail(req, res) {
 }
 
 async function user_forgotPassword(req, res, next) {
-  const { email } = req.body;
 
-  if (!email) {
-    console.log("Form Data not Found");
-    return res.status(400).json({
-      status: false,
-      message: "Form Data(email) not Found",
-    });
-  }
+  if (await validate_forgot_body(req.body, res)) return
 
-  const { error } = Joi.object({
-    email: Joi.string().email().required(),
-  }).validate(req.body);
+  const { email } = req.body
 
-  if (error) {
-    console.log("Req body does not contain valid email address");
-    return res.status(400).json({
-      status: false,
-      message: error.details[0].message,
-    });
-  }
+  const otp_user = await storeAndSendOTP(email, res)
+  if (!otp_user) return
 
-  try {
-    await storeAndSendOTP(req, res, next);
-  } catch (err) {
-    console.log(" Error while creating OTP ", err.message);
-    return res.status(500).json({
-      status: false,
-      message: err.message,
-    });
-  }
+  return await response_ok(res, 201, "OTP Saved. OTP email sent successfully", otp_user)
+  
 }
 
 async function user_resetPassword(req, res, next) {

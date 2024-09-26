@@ -9,7 +9,10 @@ exports.response_failed = async (res, status_code, status_message, error_message
         response.error = error_message;
     }
 
-    return res.status(status_code).json(response);
+    if (status_code !== undefined) {
+        return res.status(status_code).json(response);
+    }
+    return res.json(response);
 }
 
 exports.response_ok = async (res, status_code, status_message, status_user) => {
@@ -23,6 +26,5 @@ exports.response_ok = async (res, status_code, status_message, status_user) => {
         res.status(status_code).json(response);
         return response
     }
-
     return res.status(status_code).json(response);
 }
