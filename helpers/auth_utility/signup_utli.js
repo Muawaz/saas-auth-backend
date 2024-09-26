@@ -2,15 +2,10 @@ const Joi = require("joi");
 const crypto = require('crypto');
 const { Hash_Password } = require("./hash_util");
 const User = require("../../models/UserModel");
+const { response_failed } = require("../error");
 
-exports.Validate_SignUp_Body = async (body, res) => {
-    if (!body) {
-        // console.log("Form Data not Found");
-        return res.status(400).json({
-            status: false,
-            message: "Signup Form Data not Found",
-        });
-    }
+exports.validate_signup_body = async (body, res) => {
+
     const { error } = Joi.object({
         name: Joi.string().min(2).required(),
         email: Joi.string().email().required(),
@@ -18,12 +13,11 @@ exports.Validate_SignUp_Body = async (body, res) => {
     }).validate(body);
 
     if (error) {
-        console.log("SignUp request body does not contain valid data");
-        return res.status(400).json({
-            status: false,
-            message: error.details[0].message,
-        });
+        return await response_failed(res, 400,
+            "SignUp request body does not contain valid data",
+            error.details[0].message)
     }
+    return
 }
 
 exports.Check_New_User = async (email, res) => {

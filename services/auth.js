@@ -3,45 +3,52 @@ const jwt = require('jsonwebtoken')
 const User = require("../models/UserModel.js");
 const { sendEmail } = require("../helpers/mailer.js");
 const { Check_New_User, Create_New_User, Generate_Verification_Link } = require('../helpers/auth_utility/signup_utli.js');
-const { Check_Login_User, Generate_JWT_Token } = require('../helpers/auth_utility/login_util.js');
+const { Check_Login_User, generate_JWT_token } = require('../helpers/auth_utility/login_util.js');
+const { response_ok, response_failed } = require('../helpers/error.js');
 
 
 
-exports.addnewuser = async (data, res) => {
+exports.add_new_user = async (data, res) => {
   try {
 
     if (await Check_New_User(data.email, res)) return
 
     let createdUser = await Create_New_User(data.name, data.email, data.password)
 
-    const verificationLink = Generate_Verification_Link(createdUser);
+    return createdUser;
 
-    const emailSpec = {
-      emailTo: createdUser.dataValues.email,
-      emailSubject: "Verify your email",
-      emailBody: `
-        <p>Hi ${createdUser.dataValues.name},</p>
-        <p>Please verify your email by clicking the link below:</p>
-        <a href="${verificationLink}">Verify Email</a>
-      `
-    }
-
-    await sendEmail(emailSpec);
-
-    return res.status(200).json({
-      success: true,
-      message: "User created successfully. Verification email sent.",
-      user: createdUser,
-    });
   } catch (error) {
-    console.log("Error while creating new user", error);
-    return {
-      success: false,
-      message: "Error while creating new user.",
-      error: error.message,
-    };
+
+    await response_failed(res, 400, "Error while creating new user.", error.message)
+    return
   }
 };
+
+exports.new_user_email = async (user, res) => {
+  try {
+    const verificationLink = Generate_Verification_Link(user);
+
+    const emailSpec = {
+      emailTo: user.dataValues.email,
+      emailSubject: "Verify your email",
+      emailBody: `
+          <p>Hi ${user.dataValues.name},</p>
+          <p>Please verify your email by clicking the link below:</p>
+          <a href="${verificationLink}">Verify Email</a>
+        `
+    }
+    await sendEmail(emailSpec);
+
+  } catch (error) {
+
+    await response_failed(res, 400, "Error while sending verification email.", error.message)
+    return
+  }
+
+
+
+
+}
 
 exports.finduserbyid = async (data) => {
   let { userId, token } = data;
@@ -89,26 +96,15 @@ exports.verifyLogin = async (body, res) => {
   const { email, password } = body;
   try {
 
-    const { dataValues: user } = await Check_Login_User(email, password, res)
+    const userexists = await Check_Login_User(email, password, res)
 
-    if (!user) return
+    if (!userexists) return
 
-    await Generate_JWT_Token(user.id, user.email, user.role, res)
+    return userexists.dataValues
 
-    return res
-      .status(201)
-      .json({
-        success: true,
-        message: "User LogIn Successful.",
-        user: user,
-      });
   } catch (error) {
-    res.status(400).json({
-      success: false,
-      message: "An error occurred in login",
-      error: error.message,
-
-    })
+    await response_failed(res, 400, "An error occurred in login", error.message)
+    return
   }
 }
 

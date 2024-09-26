@@ -2,30 +2,24 @@ const jwt = require('jsonwebtoken');
 const { De_Hash_Password } = require('./hash_util');
 const Joi = require('joi');
 const User = require('../../models/UserModel');
+const { response_failed } = require('../error');
 
 const jwtSecret = process.env.JWT_SECRET
 const maxAge = parseInt(process.env.JWT_MAX_AGE_HRS)
 
-exports.Validate_Login_Body = async (body, res) => {
-    if (!body) {
-        return res.status(400).json({
-            status: false,
-            message: 'Login Form Data not found',
-        });
-    }
+exports.validate_login_body = async (body, res) => {
+
     const { error } = Joi.object({
         email: Joi.string().email().required(),
-        password: Joi.string().min(6).required(),
+        password: Joi.string().required(),
     }).validate(body)
-    if (error) {
-        console.log('LogIn request body does not contain valid data');
-        return res.status(400).json({
-            status: false,
-            message: error.details[0].message,
-        });
-    }
 
-    return;
+    if (error) {
+        return await response_failed(res, 400,
+            "LogIn request body does not contain valid data",
+            error.details[0].message)
+    }
+    return
 }
 
 exports.Check_Login_User = async (email, password, res) => {
@@ -34,16 +28,11 @@ exports.Check_Login_User = async (email, password, res) => {
         const result = await De_Hash_Password(password, userexists.dataValues.password);
         if (result) return userexists
     }
-    return res
-        .status(400)
-        .json({
-            success: false,
-            message: "Login not successful",
-            error: "User not found while logging in",
-        })
+    await response_failed(res, 400, "Login not successful")
+    return
 }
 
-exports.Generate_JWT_Token = async (id, email, role, res) => {
+exports.generate_JWT_token = async (id, email, role, res) => {
     try {
         const token = jwt.sign(
             {
@@ -63,11 +52,8 @@ exports.Generate_JWT_Token = async (id, email, role, res) => {
         });
 
     } catch (error) {
-        res.status(400).json({
-            success: false,
-            message: "Error occurred in signing JWT...",
-            error: error.message,
-        });
+        await response_failed(res, 400, "Error occurred in signing JWT...", error.message)
+        return
     }
 }
 

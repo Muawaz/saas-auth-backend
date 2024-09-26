@@ -1,34 +1,41 @@
-const {
-  addnewuser,
-  finduserbyid,
-  verifyLogin,
-  storeAndSendOTP,
-} = require("../services/auth.js");
+const { add_new_user, finduserbyid, verifyLogin, storeAndSendOTP, new_user_email, } = require("../services/auth.js");
 const User = require("../models/UserModel.js");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const Joi = require("joi");
 const { sendEmail } = require("../helpers/mailer.js");
 const { Op } = require('sequelize');
-const { Validate_SignUp_Body } = require("../helpers/auth_utility/signup_utli.js");
-const { Validate_Login_Body } = require("../helpers/auth_utility/login_util.js");
+const { validate_signup_body } = require("../helpers/auth_utility/signup_utli.js");
+const { validate_login_body, generate_JWT_token } = require("../helpers/auth_utility/login_util.js");
+const { response_ok } = require("../helpers/error.js");
 
 const jwtSecret = process.env.JWT_SECRET;
 
 async function createnewuser(req, res) {
 
-  if (await Validate_SignUp_Body(req.body, res)) return;
+  if (await validate_signup_body(req.body, res)) return;
 
-  let newuser = await addnewuser(req.body, res);
+  const createdUser = await add_new_user(req.body, res);
+
+  if (!createdUser) return
+
+  if (await new_user_email(createdUser, res)) return
+
+  return await response_ok(res, 200, "User created successfully. Verification email sent.", createdUser)
 
 }
 
 async function login(req, res, next) {
 
-  if (await Validate_Login_Body(req.body, res)) return;
+  if (await validate_login_body(req.body, res)) return;
 
-  let verification = await verifyLogin(req.body, res);
+  let user = await verifyLogin(req.body, res);
 
+  if (!user) return
+
+  await generate_JWT_token(user.id, user.email, user.role, res)
+
+  return await response_ok(res, 200, "User LogIn Successful. Signed with JWT", user)
 }
 
 async function verifyEmail(req, res) {
