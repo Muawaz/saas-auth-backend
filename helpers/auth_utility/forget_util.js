@@ -1,5 +1,6 @@
 const Joi = require("joi");
 const { response_failed } = require("../error");
+const { sendEmail } = require("../mailer");
 
 const Exp_time = parseInt(process.env.OTP_EXPIRY_MIN)
 
@@ -42,12 +43,14 @@ exports.otp_email = async (res, user) => {
         await sendEmail(
             user.email,
             "Your OTP Code",
-            `<p>Hi ${user.name},</p>
-           <p>Your OTP code is: <strong>${user.otp}</strong></p>
-           <p>Please use this code to complete your verification.</p>
-           <p> .( YOUR CODE IS VALID UPTO ${Exp_time} MINUTE ). </p>
-           <p>Thank you!</p>`
-        );
+            `
+                <p>Hi ${user.name},</p>
+                <p>Your OTP code is: <strong>${user.otp}</strong></p>
+                <p>Please use this code to complete your verification.</p>
+                <p> .( YOUR CODE IS VALID UPTO ${Exp_time} MINUTE ). </p>
+                <p>Thank you!</p>
+            `
+        )
         return true;
     } catch (error) {
         response_failed(res, 500, " Error while sending OTP email ", error.message)

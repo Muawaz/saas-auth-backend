@@ -29,16 +29,15 @@ exports.verfication_email = async (user, res) => {
   try {
     const verificationLink = generate_verification_link(user);
 
-    const emailSpec = {
-      emailTo: user.dataValues.email,
-      emailSubject: "Verify your email",
-      emailBody: `
-          <p>Hi ${user.dataValues.name},</p>
-          <p>Please verify your email by clicking the link below:</p>
-          <a href="${verificationLink}">Verify Email</a>
-        `
-    }
-    await sendEmail(emailSpec);
+    await sendEmail(
+      user.dataValues.email,
+      "Verify your email",
+      ` 
+        <p>Hi ${user.dataValues.name},</p>
+        <p>Please verify your email by clicking the link below:</p>
+        <a href="${verificationLink}">Verify Email</a>
+      `
+    );
 
   } catch (error) {
 
@@ -121,7 +120,7 @@ exports.storeAndSendOTP = async (email, res, next) => {
 
     if (! await save_otp(res, user, otp, otpExp)) return
 
-    if (! await otp_email(user.dataValues)) return
+    if (! await otp_email(res, user.dataValues)) return
 
     return user
   } catch (error) {
