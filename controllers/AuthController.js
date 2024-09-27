@@ -86,7 +86,6 @@ async function user_resetPassword(req, res, next) {
 
   const result_user = await save_new_password(user_obj, new_hash, res)
   if (!result_user) return
-  console.log('userrrrrr_____objjjjjjjj : ', user_obj);
 
   return await response_ok(res, 201, "Password reset successful", result_user)
 
