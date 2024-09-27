@@ -27,7 +27,7 @@ exports.add_new_user = async (data, res) => {
 
 exports.verfication_email = async (user, res) => {
   try {
-    const verificationLink = generate_verification_link(user);
+    const verificationLink = await generate_verification_link(user);
 
     await sendEmail(
       user.dataValues.email,

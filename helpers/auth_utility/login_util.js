@@ -23,10 +23,10 @@ exports.validate_login_body = async (body, res) => {
 }
 
 exports.Check_Login_User = async (email, password, res) => {
-    const userexists = await User.findOne({ where: { email: email } });
+    const userexists = await User.scope('with_Password').findOne({ where: { email: email } });
     if (userexists) {
         const result = await De_Hash_Password(password, userexists.dataValues.password);
-        if (result) return userexists
+        if (result) return await User.findByPk(userexists.id);
     }
     await response_failed(res, 400, "User not Found")
     return

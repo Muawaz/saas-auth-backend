@@ -50,9 +50,11 @@ exports.save_new_password = async (user, hash, res) => {
         user.otp = null
         user.otpExpire = null
         await user.save();
+        return await User.findByPk(user.id);
 
     } catch (error) {
-        return await response_failed(res, 500, " Error while new Password ", error.message)
+        await response_failed(res, 500, " Error while new Password ", error.message)
+        return false
 
     }
 }

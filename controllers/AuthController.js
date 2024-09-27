@@ -82,13 +82,13 @@ async function user_resetPassword(req, res, next) {
   const user_obj = await find_otp_user(req.body, res)
   if (!user_obj) return
 
-  const user = user_obj.dataValues;
-
   const new_hash = await Hash_Password(req.body.password);
 
-  if (await save_new_password(user_obj, new_hash, res)) return
+  const result_user = await save_new_password(user_obj, new_hash, res)
+  if (!result_user) return
+  console.log('userrrrrr_____objjjjjjjj : ', user_obj);
 
-  return await response_ok(res, 201, "Password reset successful", user)
+  return await response_ok(res, 201, "Password reset successful", result_user)
 
 }
 

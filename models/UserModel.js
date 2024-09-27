@@ -40,6 +40,14 @@ const User = sequelize.define(
   },
   {
     timestamps: true,
+    defaultScope: {
+      attributes: { exclude: ['password'] },
+    },
+    scopes: {
+      with_Password: {
+        attributes: { include: ['password'] },
+      },
+    },
   }
 );
 // console.log(Compagin, "from user model");

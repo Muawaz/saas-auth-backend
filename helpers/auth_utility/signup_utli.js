@@ -39,7 +39,8 @@ exports.Create_New_User = async (name, email, password) => {
         email: email,
         password: await Hash_Password(password),
     })
-    return createdUser
+    
+    return await User.findByPk(createdUser.id);
 }
 
 
@@ -50,4 +51,5 @@ exports.generate_verification_link = async (user) => {
     const verificationLink = `http://localhost:${process.env.PORT}/api/user/verify-email?token=${verificationToken}&userId=${user.dataValues.id}`;
     console.log(verificationLink);
     await user.save();
+    return verificationLink;
 }
