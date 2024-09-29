@@ -1,5 +1,6 @@
 require("dotenv").config();
 const express = require("express");
+
 const app = express();
 const cors = require("cors");
 const { sendEmail } = require("./helpers/mailer.js");
@@ -8,8 +9,12 @@ const { connectDB } = require("./dbconnection/connection.js");
 const compagin = require("./routes/compagin.router.js");
 const user = require("./routes/user.router.js");
 const { userAuth, adminAuth } = require("./middlewares/auth.js");
-const cookieParser = require('cookie-parser')
+const cookieParser = require('cookie-parser');
+const swaggerUi = require('swagger-ui-express');
+const swaggerDocs = require("./services/swagger.js");
 require("./models/associations.js");
+
+
 
 app.use(
   cors({
@@ -24,6 +29,7 @@ app.use(express.json());
 connectDB();
 app.use(cookieParser());
 
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 app.use("/api/compagin", compagin);
 app.use("/api/user", user);
 // app.use("/emailstatus", sentemailstatus);
